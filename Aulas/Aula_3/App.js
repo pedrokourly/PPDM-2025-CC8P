@@ -1,45 +1,29 @@
+import { StatusBar } from "expo-status-bar";
 import React, { useState, useEffect } from "react";
-import { Image, View, Text, FlatList, StyleSheet, ActivityIndicator } from "react-native";
+import { StyleSheet, Text, View, FlatList } from "react-native";
 
 export default function App() {
-  function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
-  const [usuarios, setUsuarios] = useState([]); // estado da lista
-  const [carregando, setCarregando] = useState(true); // estado de loading
+  const [usuarios, setUsuarios] = useState([]);
+  const [carregando, setCarregando] = useState(true);
 
-  // useEffect roda quando o componente "monta"
+  //useEffect roda enquanto o componente está sendo construído
   useEffect(() => {
-    const buscarDados = async () => {
-      try {
-        const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=20&offset=10");
-        const lista = await res.json();
+    fetch("https://190d43b8688e.ngrok-free.app/alunos")
+      .then((resposta) => resposta.json())
+      .then((dados) => {
 
-        const detalhes = await Promise.all(
-          lista.results.map(async (item) => { // <- aqui
-            const resDetalhe = await fetch(item.url);
-            const dadosDetalhe = await resDetalhe.json();
-            return { ...item, ...dadosDetalhe };
-          })
-        );
-
-        setUsuarios(detalhes);
+        setUsuarios(dados);
         setCarregando(false);
-      } catch (erro) {
-        console.error("Erro:", erro);
+      })
+      .catch((erro) => {
+        console.log(erro);
         setCarregando(false);
-      }
-    };
-
-    buscarDados();
-  }, []);
-
+      });
+  }, []); //[] significa que o useEffect vai rodar uma vez no início
 
   if (carregando) {
-    // enquanto espera resposta da API
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="blue" />
         <Text>Carregando dados...</Text>
       </View>
     );
@@ -47,28 +31,21 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.titulo}>Lista de Pokemons</Text>
+      <Text style={styles.titulo}>Lista de usuários</Text>
 
       <FlatList
-        data={usuarios} // agora vem da API
-        keyExtractor={(item) => item.name.toString()} // id da API é número, convertemos pra string
+        data={usuarios}
         renderItem={({ item }) => (
-          <View style={[styles.item, { flexDirection: "row", alignItems: "center" }]}>
-            {/* Imagem */}
-            <Image
-              source={{ uri: item.sprites.front_default }}
-              style={{ width: 50, height: 50, marginRight: 10 }}
-            />
-            {/* Nome e tipo */}
-            <View>
-              <Text style={styles.texto}>{capitalize(item.name)}</Text>
-              <Text style={styles.email}>
-                {item.types.map((t) => t.type.name).join(", ")}
-              </Text>
-            </View>
+          <View style={styles.item}>
+            <Text style={styles.texto}>{item.nome}</Text>
+            <Text style={styles.email}>{item.curso}</Text>
+            <Text style={styles.email}>{item.idade}</Text>
           </View>
         )}
+        keyExtractor={(item) => item._id.toString()}
       />
+
+      <StatusBar style="auto" />
     </View>
   );
 }
@@ -76,6 +53,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#fff",
     marginTop: 40,
     padding: 20,
   },
@@ -95,6 +73,8 @@ const styles = StyleSheet.create({
   },
   email: {
     fontSize: 14,
-    color: "gray",
+    color: "#00BFFF",
+    borderBottomWidth: 1,
+    borderColor: "#00BFFF",
   },
 });
